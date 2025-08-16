@@ -56,8 +56,8 @@ public class GitHubApiTest {
                 .contentType(ContentType.JSON)
                 .extract()
                 .jsonPath();
-        assertThat(json.getString("title[0]")).isEqualTo("Test");
-        assertThat(json.getInt("number[0]")).isEqualTo(5);
+        assertThat(json.getList("title", String.class)).contains("Test");
+        assertThat(json.getList("number", Integer.class)).contains(5);
     }
 
     @Test

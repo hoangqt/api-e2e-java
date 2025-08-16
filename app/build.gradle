@@ -1,0 +1,52 @@
+plugins {
+    id 'application'
+    id 'io.qameta.allure' version '2.11.2'
+    id 'java'
+    id 'idea'
+    id 'com.diffplug.spotless' version '7.2.1'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform(libs.junit.bom)
+    testImplementation platform(libs.allure.bom)
+    testImplementation libs.junit.jupiter
+    testImplementation libs.assertj
+
+    implementation libs.rest.assured
+    implementation libs.allure.junit5
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'org.slf4j:slf4j-simple:2.0.13'
+
+    // This dependency is used by the application.
+    implementation libs.guava
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+application {
+    mainClass = 'com.github.hoangqt.App'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    systemProperty 'allure.results.directory', "$buildDir/allure-results"
+    doFirst {
+        println "Allure results directory: ${systemProperties['allure.results.directory']}"
+    }
+}
+
+allure {
+    version = '2.28.0'
+    useJUnit5 {
+        version = '2.28.0'
+    }
+}

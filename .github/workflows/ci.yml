@@ -1,0 +1,35 @@
+---
+name: CI
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Run spotless check
+        run: ./gradlew spotlessCheck
+
+      - name: Run tests
+        run: ./gradlew test -si
+        env:
+          GITHUB_PAT: ${{ secrets.PAT }}
+
+      - name: Generate Allure report
+        run: ./gradlew allureReport -si

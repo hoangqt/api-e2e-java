@@ -1,6 +1,6 @@
 ## Summary
 
-A simple gradle project to test a subset of GitHub API using REST requests
+A simple Gradle project for testing a subset of the GitHub API using REST requests. It is implemented in Java and uses Rest-assured.
 implemented in Java and Rest-assured. The test results will be in Allure format.
 
 ### Local setup

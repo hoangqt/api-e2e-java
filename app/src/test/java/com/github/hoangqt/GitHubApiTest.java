@@ -1,46 +1,31 @@
 package com.github.hoangqt;
 
 import io.restassured.http.ContentType;
-import org.junit.jupiter.api.*;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class GitHubApiTest {
-    private static Properties properties;
-    private static String token;
     private static GitHub github;
 
-    private static final String GITHUB_PAT_KEY = "github-pat";
-    private static final String TEST_REPO = "ansible";
+    private static final String TEST_REPO = "sandbox";
     private static final String TEST_OWNER = "hoangqt";
 
     private static String issueNumber;
 
     @BeforeAll
-    public static void setup() throws IOException {
-        properties = new Properties();
-        try (FileInputStream fis = new FileInputStream("src/test/resources/test.properties")) {
-            properties.load(fis);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (properties.getProperty(GITHUB_PAT_KEY) != null) {
-            token = properties.getProperty(GITHUB_PAT_KEY);
-        } else {
-            String githubToken = System.getenv("GITHUB_PAT");
-            if (githubToken != null || !githubToken.trim().isEmpty()) {
-                token = githubToken;
-            }
-        }
-        github = new GitHub(token, properties.getProperty("owner"));
+    public static void setup() throws RuntimeException {
+        var testProperties = TestProperties.create();
+        github = new GitHub(testProperties.getToken(), testProperties.getOwner());
     }
 
     @Test

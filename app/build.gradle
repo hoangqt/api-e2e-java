@@ -4,6 +4,7 @@ plugins {
     id 'java'
     id 'idea'
     id 'com.diffplug.spotless' version '7.2.1'
+    id 'com.github.spotbugs' version '6.2.5'
 }
 
 repositories {
@@ -48,5 +49,21 @@ allure {
     version = '2.28.0'
     useJUnit5 {
         version = '2.28.0'
+    }
+}
+
+spotless {
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat()
+    }
+}
+
+// HTML report
+spotbugsMain {
+    reports {
+        text.enabled = false
+        html.enabled = true
+        xml.enabled = false
     }
 }

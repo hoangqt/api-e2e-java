@@ -24,7 +24,10 @@ jobs:
           distribution: 'temurin'
 
       - name: Run spotless check
-        run: ./gradlew spotlessCheck
+        run: ./gradlew spotlessCheck -si
+
+      - name: Run SpotBugs check
+        run: ./gradlew app:spotbugsMain -si
 
       - name: Run tests
         run: ./gradlew test -si

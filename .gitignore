@@ -3,3 +3,4 @@ build
 .idea
 .DS_Store
 .iml
+app/src/test/resources/test.properties

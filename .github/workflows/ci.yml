@@ -36,3 +36,11 @@ jobs:
 
       - name: Generate Allure report
         run: ./gradlew allureReport -si
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: app/build/reports/allure-report/allureReport
+          retention-days: 7

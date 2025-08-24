@@ -41,6 +41,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-report
-          path: app/build/reports/allure-report/allureReport
+          name: allure-results
+          path: app/build/allure-results
           retention-days: 7

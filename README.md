@@ -8,3 +8,8 @@ will be in Allure format.
 
 - Add `github-pat=<your-github-pat>` to `src/test/resources/test.properties`
 - Run `./gradlew test` to execute the tests
+- Run `./gradlew allureReport` to generate Allure report
+
+### View Allure report
+
+- Run `allure serve app/build/allure-results`

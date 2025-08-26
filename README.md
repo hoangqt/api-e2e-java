@@ -1,6 +1,6 @@
 ![granon](knower.png)
 
-Everything is transitory--the knower and the known -- Marcus Aurelius
+*Everything is transitory-the knower and the known. -- Marcus Aurelius*
 
 ## Summary
 

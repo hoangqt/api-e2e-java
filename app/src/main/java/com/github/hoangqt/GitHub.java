@@ -47,11 +47,19 @@ public class GitHub {
   }
 
   public Response getRepositoryIssues(String repo) {
+    return getRepositoryIssues(repo, 1);
+  }
+
+  public Response getRepositoryIssues(String repo, int page) {
+    int defaultPerPage = 30;
+
     return given()
         .header("Authorization", "Bearer " + this.token)
         .header("Accept", "application/vnd.github.v3+json")
         .pathParam("owner", this.owner)
         .pathParam("repo", repo)
+        .queryParam("per_page", defaultPerPage)
+        .queryParam("page", page)
         .when()
         .get("/repos/{owner}/{repo}/issues");
   }

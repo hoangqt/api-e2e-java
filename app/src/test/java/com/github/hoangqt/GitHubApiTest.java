@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.restassured.http.ContentType;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -150,5 +151,41 @@ public class GitHubApiTest {
             .extract()
             .jsonPath();
     assertThat(json.getList("committer.login", String.class)).contains(TEST_OWNER);
+  }
+
+  @AfterAll
+  public static void tearDown() {
+    int page = 1;
+    while (true) {
+      var json =
+          github
+              .getRepositoryIssues(TEST_REPO, page)
+              .then()
+              .statusCode(200)
+              .contentType(ContentType.JSON)
+              .extract()
+              .jsonPath();
+
+      List<Map<String, Object>> issues = json.getList("$");
+      if (issues == null || issues.isEmpty()) {
+        break;
+      }
+
+      var body =
+          """
+              {
+                  "state": "closed",
+                  "state_reason": "not_planned"
+              }""";
+
+      for (Map<String, Object> issue : issues) {
+        Object number = issue.get("number");
+        if (number != null) {
+          var issueNum = String.valueOf(number);
+          github.updateIssue(TEST_REPO, body, issueNum).then().statusCode(200);
+        }
+      }
+      page++;
+    }
   }
 }

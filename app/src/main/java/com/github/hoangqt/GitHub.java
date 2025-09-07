@@ -3,6 +3,8 @@ package com.github.hoangqt;
 import static io.restassured.RestAssured.given;
 
 import io.restassured.RestAssured;
+import io.restassured.config.HttpClientConfig;
+import io.restassured.config.RestAssuredConfig;
 import io.restassured.response.Response;
 
 public class GitHub {
@@ -99,5 +101,27 @@ public class GitHub {
         .body(body)
         .when()
         .patch("/repos/{owner}/{repo}/issues/{issueNumber}");
+  }
+
+  /**
+   * Sends a GET request to retrieve repositories from a GitHub repository with a customized timeout
+   * configuration.
+   *
+   * @param repo the name of the repository from which to fetch issues
+   * @return the response containing the issues or an error if the request fails
+   */
+  public Response getSlowRequest(String repo) {
+    return given()
+        .config(
+            RestAssuredConfig.config()
+                .httpClient(
+                    HttpClientConfig.httpClientConfig()
+                        // Apache HttpClient settings in milliseconds
+                        .setParam("http.connection.timeout", 5000)
+                        .setParam("http.socket.timeout", 5000)))
+        .pathParam("owner", this.owner)
+        .pathParam("repo", repo)
+        .when()
+        .get("/repos/{owner}/{repo}");
   }
 }

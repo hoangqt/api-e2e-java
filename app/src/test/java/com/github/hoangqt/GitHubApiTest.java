@@ -140,6 +140,14 @@ public class GitHubApiTest {
     assertThat(json.getString("labels")).containsAnyOf("bug", "invalid");
   }
 
+  /** Example of a timeout configuration workaround to missing request cancellation feature. */
+  @Test
+  public void testSlowRequest() {
+    var json = github.getSlowRequest(TEST_REPO).then().statusCode(200).extract().jsonPath();
+    assertThat(json.getString("name")).isEqualTo(TEST_REPO);
+    assertThat(json.getString("owner.login")).isEqualTo(TEST_OWNER);
+  }
+
   @Test
   public void testGetCommits() {
     var json =

@@ -2,9 +2,15 @@ package com.github.hoangqt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import io.restassured.http.ContentType;
+import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
@@ -128,14 +134,30 @@ public class GitHubApiTest {
             "labels": ["bug", "invalid"]
         }""";
 
+    // base 1s, multiplier 2.0, randomization 0.5
+    IntervalFunction exponentialBackoff =
+        IntervalFunction.ofExponentialRandomBackoff(1000, 2.0, 0.5);
+
+    RetryConfig config =
+        RetryConfig.custom()
+            .maxAttempts(5)
+            .intervalFunction(exponentialBackoff)
+            .waitDuration(Duration.ofSeconds(1))
+            .retryExceptions(IOException.class, TimeoutException.class)
+            .build();
+
+    Retry retry = Retry.of("testUpdateIssue", config);
+
     var json =
-        github
-            .updateIssue(TEST_REPO, body, issueNumber)
-            .then()
-            .statusCode(200)
-            .contentType(ContentType.JSON)
-            .extract()
-            .jsonPath();
+        retry.executeSupplier(
+            () ->
+                github
+                    .updateIssue(TEST_REPO, body, issueNumber)
+                    .then()
+                    .statusCode(200)
+                    .contentType(ContentType.JSON)
+                    .extract()
+                    .jsonPath());
 
     assertThat(json.getString("labels")).containsAnyOf("bug", "invalid");
   }

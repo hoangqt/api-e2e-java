@@ -21,6 +21,7 @@ dependencies {
     implementation libs.allure.junit5
 
     implementation 'io.github.resilience4j:resilience4j-retry:2.3.0'
+
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'org.slf4j:slf4j-simple:2.0.13'
 

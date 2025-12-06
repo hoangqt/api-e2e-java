@@ -19,6 +19,7 @@ dependencies {
 
     implementation libs.rest.assured
     implementation libs.allure.junit5
+    implementation libs.gson
 
     implementation 'io.github.resilience4j:resilience4j-retry:2.3.0'
 

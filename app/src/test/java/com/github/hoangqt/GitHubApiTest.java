@@ -2,6 +2,8 @@ package com.github.hoangqt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
@@ -24,6 +26,10 @@ public class GitHubApiTest {
 
   private static final String TEST_REPO = "sandbox";
   private static final String TEST_OWNER = "hoangqt";
+  private static final String ISSUE_TITLE = "Found a bug";
+  private static final String ISSUE_BODY = "This is a test issue created by automation";
+  private static final String CLOSED = "closed";
+  private static final String NOT_PLANNED = "not_planned";
 
   private static String issueNumber;
 
@@ -50,26 +56,29 @@ public class GitHubApiTest {
   @Test
   @Order(1)
   public void testCreateIssue() {
-    var body =
-        """
-        {
-            "title": "Found a bug",
-            "body": "This is a test issue created by automation",
-            "assignees": ["hoangqt"],
-            "labels": ["bug"]
-        }""";
+    var assignees = new JsonArray();
+    assignees.add(TEST_OWNER);
+
+    var labels = new JsonArray();
+    labels.add("bug");
+
+    var body = new JsonObject();
+    body.addProperty("title", ISSUE_TITLE);
+    body.addProperty("body", ISSUE_BODY);
+    body.add("assignees", assignees);
+    body.add("labels", labels);
 
     var json =
         github
-            .createIssue(TEST_REPO, body)
+            .createIssue(TEST_REPO, body.toString())
             .then()
             .statusCode(201)
             .contentType(ContentType.JSON)
             .extract()
             .jsonPath();
 
-    assertThat(json.getString("title")).isEqualTo("Found a bug");
-    assertThat(json.getString("body")).isEqualTo("This is a test issue created by automation");
+    assertThat(json.getString("title")).isEqualTo(ISSUE_TITLE);
+    assertThat(json.getString("body")).isEqualTo(ISSUE_BODY);
     assertThat(json.getString("state")).isEqualTo("open");
 
     issueNumber = String.valueOf(json.getInt("number"));
@@ -95,14 +104,14 @@ public class GitHubApiTest {
               .jsonPath();
 
       var titles = json.getList("title", String.class);
-      if (titles != null && titles.contains("Found a bug")) {
+      if (titles != null && titles.contains(ISSUE_TITLE)) {
         found = true;
 
         // If issueNumber wasn't set in testCreateIssue (e.g., rerun), set it now
         if (issueNumber == null) {
           List<Map<String, Object>> issues = json.getList("$");
           for (Map<String, Object> issue : issues) {
-            if ("Found a bug".equals(issue.get("title"))) {
+            if (ISSUE_TITLE.equals(issue.get("title"))) {
               Object number = issue.get("number");
               if (number != null) {
                 issueNumber = String.valueOf(number);
@@ -117,22 +126,28 @@ public class GitHubApiTest {
     }
 
     assertThat(found)
-        .as("Issue titled 'Found a bug' should appear within the polling timeout")
+        .as("Issue titled " + "'Found a bug'" + " should appear within the polling timeout")
         .isTrue();
-    assertThat(issueNumber).as("Issue number for title 'Found a bug' should be found").isNotNull();
+    assertThat(issueNumber)
+        .as("Issue number for title " + "'Found a bug'" + " should be found")
+        .isNotNull();
   }
 
   @Test
   @Order(3)
   public void testUpdateIssue() {
-    var body =
-        """
-        {
-            "title": "Found a bug",
-            "body": "This is a test issue created by automation",
-            "assignees": ["hoangqt"],
-            "labels": ["bug", "invalid"]
-        }""";
+    var assignees = new JsonArray();
+    assignees.add(TEST_OWNER);
+
+    var labels = new JsonArray();
+    labels.add("bug");
+    labels.add("invalid");
+
+    var body = new JsonObject();
+    body.addProperty("title", ISSUE_TITLE);
+    body.addProperty("body", ISSUE_BODY);
+    body.add("assignees", assignees);
+    body.add("labels", labels);
 
     // base 1s, multiplier 2.0, randomization 0.5
     IntervalFunction exponentialBackoff =
@@ -152,17 +167,18 @@ public class GitHubApiTest {
         retry.executeSupplier(
             () ->
                 github
-                    .updateIssue(TEST_REPO, body, issueNumber)
+                    .updateIssue(TEST_REPO, body.toString(), issueNumber)
                     .then()
                     .statusCode(200)
                     .contentType(ContentType.JSON)
                     .extract()
                     .jsonPath());
 
-    assertThat(json.getString("labels")).containsAnyOf("bug", "invalid");
+    List<String> labelNames = json.getList("labels.name", String.class);
+    assertThat(labelNames).containsAnyOf("bug", "invalid");
   }
 
-  /** Example of a timeout configuration workaround to missing request cancellation feature. */
+  // Example of a timeout configuration workaround to missing request cancellation feature.
   @Test
   public void testSlowRequest() {
     var json = github.getSlowRequest(TEST_REPO).then().statusCode(200).extract().jsonPath();
@@ -201,18 +217,15 @@ public class GitHubApiTest {
         break;
       }
 
-      var body =
-          """
-              {
-                  "state": "closed",
-                  "state_reason": "not_planned"
-              }""";
+      var body = new JsonObject();
+      body.addProperty("state", CLOSED);
+      body.addProperty("state_reason", NOT_PLANNED);
 
       for (Map<String, Object> issue : issues) {
         Object number = issue.get("number");
         if (number != null) {
           var issueNum = String.valueOf(number);
-          github.updateIssue(TEST_REPO, body, issueNum).then().statusCode(200);
+          github.updateIssue(TEST_REPO, body.toString(), issueNum).then().statusCode(200);
         }
       }
       page++;

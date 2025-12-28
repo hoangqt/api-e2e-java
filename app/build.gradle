@@ -23,6 +23,7 @@ dependencies {
 
     implementation 'io.github.resilience4j:resilience4j-retry:2.3.0'
 
+    implementation 'org.slf4j:slf4j-api:2.0.13'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'org.slf4j:slf4j-simple:2.0.13'
 

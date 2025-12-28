@@ -6,9 +6,12 @@ import io.restassured.RestAssured;
 import io.restassured.config.HttpClientConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.response.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GitHub {
   private static final String GITHUB_API_URL = "https://api.github.com";
+  private static final Logger logger = LoggerFactory.getLogger(GitHub.class);
 
   private String token;
   private String owner;
@@ -39,6 +42,8 @@ public class GitHub {
   }
 
   public Response getRepository(String repo) {
+    String url = String.format("/repos/%s/%s", this.owner, repo);
+    logger.debug("Fetching repository from {}", url);
     return given()
         .header("Authorization", "Bearer " + this.token)
         .header("Accept", "application/vnd.github.v3+json")
@@ -54,6 +59,8 @@ public class GitHub {
 
   public Response getRepositoryIssues(String repo, int page) {
     int defaultPerPage = 30;
+    String url = String.format("/repos/%s/%s/issues", this.owner, repo);
+    logger.debug("Fetching issues from {}", url);
 
     return given()
         .header("Authorization", "Bearer " + this.token)
@@ -67,6 +74,8 @@ public class GitHub {
   }
 
   public Response getRepositoryCommits(String repo) {
+    String url = String.format("/repos/%s/%s/commits", this.owner, repo);
+    logger.debug("Fetching commits from {}", url);
     return given()
         .header("Authorization", "Bearer " + this.token)
         .header("Accept", "application/vnd.github.v3+json")
@@ -77,6 +86,8 @@ public class GitHub {
   }
 
   public Response createIssue(String repo, String body) {
+    String url = String.format("/repos/%s/%s/issues", this.owner, repo);
+    logger.debug("Creating issue in {}", url);
     return given()
         .header("Authorization", "Bearer " + this.token)
         .header("Accept", "application/vnd.github+json")
@@ -90,6 +101,8 @@ public class GitHub {
   }
 
   public Response updateIssue(String repo, String body, String issueNumber) {
+    String url = String.format("/repos/%s/%s/issues/%s", this.owner, repo, issueNumber);
+    logger.debug("Updating issue at {}", url);
     return given()
         .header("Authorization", "Bearer " + this.token)
         .header("Accept", "application/vnd.github+json")
@@ -111,6 +124,8 @@ public class GitHub {
    * @return the response containing the issues or an error if the request fails
    */
   public Response getSlowRequest(String repo) {
+    String url = String.format("/repos/%s/%s", this.owner, repo);
+    logger.debug("Fetching repository (slow request) from {}", url);
     return given()
         .config(
             RestAssuredConfig.config()
